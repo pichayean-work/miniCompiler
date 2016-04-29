@@ -1,0 +1,291 @@
+package Parser;
+
+import Lexical.Token;
+import Lexical.TokenStream;
+
+public class Parser {
+    private TokenStream tokenstream;
+    public Token current;
+    private int index;
+    
+    public Parser(TokenStream tokenStream){
+        this.tokenstream = tokenStream;
+        current = new Token();
+        index = 0;
+        
+    }
+    
+    public void begin(){
+        read();
+        S();    
+    }
+    
+    public void read(){
+        if(index >= 0 && index < tokenstream.size()){
+            Token token = tokenstream.get(index++);
+            current.setName(token.getName());
+            current.setType(token.getType());
+        }else{
+            current.setName("$");            
+        }
+    }
+    
+    public void matchWord(String sym, Token current){
+        if (sym.equals(current.getName())) {
+            read();
+        }else{
+            int i = index;
+            i=i-2;
+            Token tmp = tokenstream.get(i);
+            System.out.println("Error : " + tmp.getName());
+        }
+    }
+    
+    public void matchClass(String sym, Token current){
+        if(sym.equals(current.getType())){
+           read(); 
+        }else{
+            int i = index;
+            i=i-2;
+            Token tmp = tokenstream.get(i);
+            System.out.println("Error : " + tmp.getName());
+        }
+    }
+    
+    public void S(){
+        if(current.getName().equals("Program")){
+            matchWord("Program", current);
+            matchClass("IDENTIFIER", current);
+            matchWord(";", current);
+            T();
+            B();            
+        }else if(current.getName().equals("$")){
+            return;
+        }else{
+            System.out.println("Error in S()");
+        }
+    }
+    
+    public void T(){
+        if(current.getName().equals("int")
+                ||current.getName().equals("float")
+                ||current.getName().equals("string")){
+                T1();
+                matchClass("IDENTIFIER", current);
+                D();
+                T();
+        }else if(current.getName().equals("func")
+                ||current.getName().equals("IDENTIFIER")
+                ||current.getName().equals("if")
+                ||current.getName().equals("while")
+                ||current.getName().equals("}")){
+            
+        }else{
+            System.out.println("Error in T()");
+        }
+    }
+    
+    public void D(){
+        if(current.getName().equals("=")
+            ||current.getName().equals(",")
+            ||current.getName().equals(";")){
+            A1();
+            T2();
+            matchWord(";", current);
+        }else{
+            System.out.println("Error in A1()");
+        }
+    }
+    
+    public void A1(){
+        if(current.getName().equals("=")){
+            matchWord("=", current);
+            I();
+            E();
+        }else if(current.getName().equals(",")
+                ||current.getName().equals(";")){
+            
+        }else{
+            System.out.println("Error in A1()");
+        }
+    }
+    
+    public void T2(){        
+        if(current.getName().equals(",")){
+            matchWord(",", current);
+            matchClass("IDENTIFIER", current);
+            A1();
+            T2();            
+        }else if(current.getName().equals(";")){
+            
+        }else{
+            System.out.println("Error in T2()");
+        }
+    }
+    
+    public void T1(){
+        if(current.getName().equals("int")){
+            matchWord("int", current);
+        }else if(current.getName().equals("float")){
+            matchWord("float", current);
+        }else if(current.getName().equals("string")){
+            matchWord("string", current);
+        }else{
+            System.out.println("Error in D()");
+        }
+    }    
+   
+    
+    //TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+    
+    public void B(){
+        if(current.getName().equals("func")){
+            B1();
+            B();
+        }else if(current.getName().equals("$")){
+            
+        }else{
+            System.out.println("Error in B()");
+        }
+    }
+    
+    public void B1(){
+        if(current.getName().equals("func")){
+            matchWord("func", current);
+            matchClass("IDENTIFIER", current);
+            matchWord("(", current);
+            matchWord(")", current);
+            matchWord("{", current);
+            T();
+            W();
+            matchWord("}", current);
+        }else{
+            System.out.println("Error in B1()");
+        }
+    }
+    
+    public void W(){
+        if(current.getType().equals("IDENTIFIER")){
+            A();
+            W();
+        }else if(current.getName().equals("while")){
+            Y();
+            W();
+        }else if(current.getName().equals("if")){
+            F();
+            W();
+        }else if(current.getName().equals("}")){
+            
+        }else{
+            System.out.println("Error in W()");
+        }
+    }
+    
+    public void A(){
+        if(current.getType().equals("IDENTIFIER")){
+            matchClass("IDENTIFIER", current);
+            matchWord("=", current);
+            I();
+            E();
+            matchWord(";", current);
+        }else{
+            System.out.println("Error in A()");
+        }
+    }
+    
+    public void E(){
+        if(current.getName().equals("+")){
+            matchWord("+", current);
+            I();
+            E();
+        }else if(current.getName().equals("-")){
+            matchWord("-", current);
+            I();
+            E();
+        }else if(current.getName().equals("*")){
+            matchWord("*", current);
+            I();
+            E();
+        }else if(current.getName().equals("/")){
+            matchWord("/", current);
+            I();
+            E();
+        }else if(current.getName().equals(")")
+                ||current.getName().equals(";")
+                ||current.getName().equals(",")
+                ||current.getName().equals(">")
+                ||current.getName().equals("<")
+                ||current.getName().equals("==")){
+            
+        }else{
+            System.out.println("Error in E()");
+        }
+    }
+    
+    public void I(){
+        if(current.getType().equals("IDENTIFIER")){
+            matchClass("IDENTIFIER", current);
+        }else if(current.getType().equals("int_const")){
+            matchClass("int_const", current);
+        }else if(current.getType().equals("float_const")){
+            matchClass("float_const", current);
+        }else if(current.getType().equals("String_const")){
+            matchClass("String_cost", current);
+        }else{
+            System.out.println("Error in I()");
+        }
+    }
+    
+    public void Y(){
+        if(current.getName().equals("while")){
+            matchWord("while", current);
+            matchWord("(", current);
+            I();
+            E();
+            O();
+            I();
+            E();
+            matchWord(")", current);
+            matchWord("{", current);
+            W();
+            matchWord("}", current);
+        }else{
+            System.out.println("Error in Y()");
+        }
+    }
+    
+    public void F(){
+        if(current.getName().equals("if")){
+            matchWord("if", current);
+            matchWord("(", current);
+            I();
+            E();
+            O();
+            I();
+            E();
+            matchWord(")", current);
+            matchWord("{", current);
+            W();
+            matchWord("}", current);
+            matchWord("else", current);
+            matchWord("{", current);
+            W();
+            matchWord("}", current);
+        }else{
+            System.out.println("Error in Y()");
+        }
+    }
+    
+    public void O(){
+        if(current.getName().equals(">")){
+            matchWord(">", current);
+        }else if(current.getName().equals("<")){
+            matchWord("<", current);
+        }else if(current.getName().equals("==")){
+            matchWord("==", current);
+        }else{
+            System.out.println("Error in O()");
+        }
+    }
+    
+}
